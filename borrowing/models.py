@@ -11,7 +11,7 @@ def default_return_expecting_date():
 
 
 class Borrowing(models.Model):
-    borrow_date = models.DateField(auto_now_add=True)
+    borrow_date = models.DateField()
     expected_return_date = models.DateField(
         default=default_return_expecting_date()
     )
