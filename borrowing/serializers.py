@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
+from book.serializers import BookSerializer
 from borrowing.models import Borrowing
+from user.serializers import UserSerializer
 
 
 class BorrowingSerializer(serializers.ModelSerializer):
@@ -15,3 +17,8 @@ class BorrowingSerializer(serializers.ModelSerializer):
             "book",
             "borrower",
         )
+
+
+class BorrowingListSerializer(BorrowingSerializer):
+    book = BookSerializer(many=False, read_only=True)
+    borrower = UserSerializer(many=False, read_only=True)
