@@ -21,6 +21,20 @@ class BorrowingViewSet(viewsets.ModelViewSet):
     serializer_class = BorrowingSerializer
     pagination_class = LibraryPagination
 
+    def get_queryset(self):
+        user_id_str = self.request.query_params.get("user_id")
+        is_active = self.request.query_params.get("is_active")
+
+        queryset = self.queryset
+
+        if user_id_str:
+            queryset = queryset.filter(borrower_id=int(user_id_str))
+
+        if is_active:
+            queryset = queryset.filter(actual_return_date__isnull=True)
+
+        return queryset
+
     def get_serializer_class(self):
 
         if self.action == "list":
