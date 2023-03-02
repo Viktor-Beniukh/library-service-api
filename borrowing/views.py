@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-
+from rest_framework.pagination import PageNumberPagination
 
 from borrowing.models import Borrowing
 from borrowing.serializers import (
@@ -11,9 +11,15 @@ from borrowing.serializers import (
 )
 
 
+class LibraryPagination(PageNumberPagination):
+    page_size = 5
+    max_page_size = 100
+
+
 class BorrowingViewSet(viewsets.ModelViewSet):
     queryset = Borrowing.objects.select_related("book", "borrower")
     serializer_class = BorrowingSerializer
+    pagination_class = LibraryPagination
 
     def get_serializer_class(self):
 
