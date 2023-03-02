@@ -7,6 +7,7 @@ from borrowing.serializers import (
     BorrowingListSerializer,
     BorrowingDetailSerializer,
     BorrowingCreateSerializer,
+    BorrowingUpdateSerializer,
 )
 
 
@@ -24,5 +25,8 @@ class BorrowingViewSet(viewsets.ModelViewSet):
 
         if self.action == "create":
             return BorrowingCreateSerializer
+
+        if self.action == "update":
+            return BorrowingUpdateSerializer
 
         return BorrowingSerializer
