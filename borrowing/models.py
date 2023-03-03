@@ -31,7 +31,7 @@ class Borrowing(models.Model):
         ordering = ("borrow_date",)
 
     def __str__(self):
-        return f"{self.borrow_date}"
+        return f"{self.id}: '{self.book.title}'"
 
 
 class Payment(models.Model):
@@ -59,7 +59,9 @@ class Payment(models.Model):
     )
     session_url = models.URLField()
     session_id = models.CharField(max_length=100)
-    money_to_pay = models.DecimalField(max_digits=10, decimal_places=2)
+    money_to_pay = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0
+    )
 
     def __str__(self):
         return f"Payment {self.id} ({self.borrowing.book.title})"

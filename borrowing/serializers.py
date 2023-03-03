@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from book.serializers import BookSerializer
-from borrowing.models import Borrowing
+from borrowing.models import Borrowing, Payment
 from user.serializers import UserSerializer
 
 
@@ -90,3 +90,31 @@ class BorrowingUpdateSerializer(serializers.ModelSerializer):
             instance.save()
 
             return instance
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+    borrowing = serializers.PrimaryKeyRelatedField(
+        queryset=Borrowing.objects.all()
+    )
+    money_to_pay = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
+
+    class Meta:
+        model = Payment
+        fields = (
+            "id",
+            "borrowing",
+            "status",
+            "type",
+            "session_url",
+            "session_id",
+            "money_to_pay",
+        )
+
+
+class PaymentUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Payment
+        fields = ("status", "type")

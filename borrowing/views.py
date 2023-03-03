@@ -3,13 +3,15 @@ from rest_framework import viewsets
 from book.permissions import IsAdminOrIfAuthenticatedReadOnly
 from book.views import LibraryPagination
 
-from borrowing.models import Borrowing
+from borrowing.models import Borrowing, Payment
 from borrowing.serializers import (
     BorrowingSerializer,
     BorrowingListSerializer,
     BorrowingDetailSerializer,
     BorrowingCreateSerializer,
     BorrowingUpdateSerializer,
+    PaymentSerializer,
+    PaymentUpdateSerializer,
 )
 
 
@@ -52,3 +54,23 @@ class BorrowingViewSet(viewsets.ModelViewSet):
             return BorrowingUpdateSerializer
 
         return BorrowingSerializer
+
+
+class PaymentViewSet(viewsets.ModelViewSet):
+    queryset = Payment.objects.select_related("borrowing")
+    serializer_class = PaymentSerializer
+    pagination_class = LibraryPagination
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return Payment.objects.all()
+        return Payment.objects.filter(
+            borrowing__borrower=self.request.user
+        )
+
+    def get_serializer_class(self):
+        if self.action == "update":
+            return PaymentUpdateSerializer
+
+        return PaymentSerializer
