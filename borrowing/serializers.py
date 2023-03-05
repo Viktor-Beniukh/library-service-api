@@ -45,6 +45,7 @@ class BorrowingDetailSerializer(BorrowingSerializer):
 
 
 class BorrowingCreateSerializer(BorrowingSerializer):
+
     def create(self, validated_data):
         borrowing = Borrowing.objects.create(**validated_data)
 
@@ -80,10 +81,8 @@ class BorrowingUpdateSerializer(BorrowingDetailSerializer):
 
 
 class PaymentSerializer(serializers.ModelSerializer):
-    borrowing = serializers.PrimaryKeyRelatedField(queryset=Borrowing.objects.all())
-    money_to_pay = serializers.DecimalField(
-        max_digits=10, decimal_places=2, read_only=True
-    )
+    borrowing = serializers.PrimaryKeyRelatedField(queryset=Borrowing.objects.select_related("book"))
+    money_to_pay = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
 
     class Meta:
         model = Payment
@@ -106,20 +105,20 @@ class PaymentSerializer(serializers.ModelSerializer):
             borrowing.actual_return_date > borrowing.expected_return_date
         ):
             overdue_days = (
-                borrowing.actual_return_date - borrowing.expected_return_date
+                    borrowing.actual_return_date - borrowing.expected_return_date
             ).days
-            many_to_pay = days_borrowed * book.daily_fee + (
+            money_to_pay = days_borrowed * book.daily_fee + (
                 overdue_days * book.daily_fee * settings.FINE_MULTIPLIER
             )
-            validated_data["many_to_pay"] = many_to_pay
+            validated_data["money_to_pay"] = money_to_pay
 
         if days_borrowed > 0 and (
             borrowing.actual_return_date == borrowing.expected_return_date
         ):
-            many_to_pay = days_borrowed * book.daily_fee
-            validated_data["many_to_pay"] = many_to_pay
+            money_to_pay = days_borrowed * book.daily_fee
+            validated_data["money_to_pay"] = money_to_pay
 
-        return super().create(validated_data)
+        return super(PaymentSerializer, self).create(validated_data)
 
 
 class PaymentUpdateSerializer(PaymentSerializer):

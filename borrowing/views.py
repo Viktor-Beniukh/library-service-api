@@ -20,6 +20,7 @@ class BorrowingViewSet(viewsets.ModelViewSet):
     serializer_class = BorrowingSerializer
     pagination_class = LibraryPagination
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
+    payment_serializer_class = PaymentSerializer
 
     def get_queryset(self):
         status = self.request.user.is_staff
