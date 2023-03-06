@@ -5,6 +5,11 @@ from book.serializers import BookSerializer
 from borrowing.models import Borrowing, Payment
 from user.serializers import UserSerializer
 
+from book.notifications import (
+    send_new_borrowing_notification,
+    send_overdue_borrowings_notification,
+)
+
 
 class BorrowingSerializer(serializers.ModelSerializer):
     class Meta:
@@ -57,6 +62,8 @@ class BorrowingCreateSerializer(BorrowingSerializer):
             borrowing.book.save()
             borrowing.save()
 
+            send_new_borrowing_notification(borrowing_id=borrowing.id)
+
             return borrowing
 
 
@@ -76,6 +83,8 @@ class BorrowingUpdateSerializer(BorrowingDetailSerializer):
             instance.book.inventory += 1
             instance.book.save()
             instance.save()
+
+            send_overdue_borrowings_notification()
 
             return instance
 
