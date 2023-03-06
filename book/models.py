@@ -12,7 +12,9 @@ class Book(models.Model):
 
     title = models.CharField(max_length=255)
     author = models.CharField(max_length=255, blank=True)
-    cover = models.CharField(max_length=20, choices=COVER_CHOICES, default=HARD)
+    cover = models.CharField(
+        max_length=20, choices=COVER_CHOICES, default=HARD
+    )
     inventory = models.PositiveIntegerField()
     daily_fee = models.DecimalField(max_digits=5, decimal_places=2)
 
@@ -21,4 +23,3 @@ class Book(models.Model):
 
     def __str__(self):
         return self.title
-

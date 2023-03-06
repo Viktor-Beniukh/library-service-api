@@ -25,8 +25,12 @@ class BorrowingSerializer(serializers.ModelSerializer):
 
 
 class BorrowingListSerializer(BorrowingSerializer):
-    book_title = serializers.CharField(source="book.title", read_only=True)
-    book_inventory = serializers.IntegerField(source="book.inventory", read_only=True)
+    book_title = serializers.CharField(
+        source="book.title", read_only=True
+    )
+    book_inventory = serializers.IntegerField(
+        source="book.inventory", read_only=True
+    )
     borrower_full_name = serializers.CharField(
         source="borrower.full_name", read_only=True
     )
@@ -55,7 +59,9 @@ class BorrowingCreateSerializer(BorrowingSerializer):
         borrowing = Borrowing.objects.create(**validated_data)
 
         if borrowing.book.inventory == 0:
-            raise serializers.ValidationError("I’m sorry, but there are no more books")
+            raise serializers.ValidationError(
+                "I’m sorry, but there are no more books"
+            )
 
         if borrowing.borrow_date:
             borrowing.book.inventory -= 1
@@ -73,7 +79,9 @@ class BorrowingUpdateSerializer(BorrowingDetailSerializer):
 
     def update(self, instance, validated_data):
         if instance.actual_return_date is not None:
-            raise serializers.ValidationError("This book has already been returned")
+            raise serializers.ValidationError(
+                "This book has already been returned"
+            )
 
         instance.actual_return_date = validated_data.get(
             "actual_return_date", instance.actual_return_date
@@ -90,16 +98,20 @@ class BorrowingUpdateSerializer(BorrowingDetailSerializer):
 
 
 class PaymentSerializer(serializers.ModelSerializer):
-    borrowing = serializers.PrimaryKeyRelatedField(queryset=Borrowing.objects.select_related("book"))
-    money_to_pay = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    borrowing = serializers.PrimaryKeyRelatedField(
+        queryset=Borrowing.objects.select_related("book")
+    )
+    money_to_pay = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
 
     class Meta:
         model = Payment
         fields = (
             "id",
             "borrowing",
-            "status",
-            "type",
+            "status_payment",
+            "type_payment",
             "session_url",
             "session_id",
             "money_to_pay",
@@ -108,13 +120,15 @@ class PaymentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         borrowing = validated_data["borrowing"]
         book = borrowing.book
-        days_borrowed = (borrowing.expected_return_date - borrowing.borrow_date).days
+        days_borrowed = (
+            borrowing.expected_return_date - borrowing.borrow_date
+        ).days
 
         if days_borrowed > 0 and (
             borrowing.actual_return_date > borrowing.expected_return_date
         ):
             overdue_days = (
-                    borrowing.actual_return_date - borrowing.expected_return_date
+                borrowing.actual_return_date - borrowing.expected_return_date
             ).days
             money_to_pay = days_borrowed * book.daily_fee + (
                 overdue_days * book.daily_fee * settings.FINE_MULTIPLIER

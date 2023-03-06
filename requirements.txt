@@ -9,6 +9,9 @@ django_debug_toolbar==3.8.1
 djangorestframework==3.14.0
 djangorestframework-simplejwt==5.2.2
 drf-spectacular==0.25.1
+flake8==6.0.0
+flake8-quotes==3.3.2
+flake8-variables-names==0.0.5
 h11==0.14.0
 h2==4.1.0
 hpack==4.0.0
@@ -18,6 +21,10 @@ hyperframe==6.0.1
 idna==3.4
 inflection==0.5.1
 jsonschema==4.17.3
+mccabe==0.7.0
+pep8-naming==0.13.3
+pycodestyle==2.10.0
+pyflakes==3.0.1
 PyJWT==2.6.0
 pyrsistent==0.19.3
 pyTelegramBotAPI==4.10.0

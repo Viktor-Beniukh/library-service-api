@@ -26,7 +26,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-m39f8@qbt_-7e7=lsprqp@1io7fe#m3e-y9*_bf8o!yq!s-(!("
+SECRET_KEY = (
+    "django-insecure-m39f8@qbt_-7e7=lsprqp@1io7fe#m3e-y9*_bf8o!yq!s-(!("
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -159,7 +161,8 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Library Service API",
-    "DESCRIPTION": "System management of borrowing and returning the books in the library",
+    "DESCRIPTION": "System management of borrowing and "
+                   "returning the books in the library",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "SWAGGER_UI_SETTINGS": {
