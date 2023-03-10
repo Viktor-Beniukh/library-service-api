@@ -31,7 +31,7 @@ class Borrowing(models.Model):
         ordering = ("borrow_date",)
 
     def __str__(self):
-        return f"{self.id}: '{self.book.title}'"
+        return f"{self.id}: ('{self.book.title}')"
 
 
 class Payment(models.Model):

@@ -15,3 +15,11 @@ class BookSerializer(serializers.ModelSerializer):
             "inventory",
             "daily_fee",
         )
+
+
+class BookUpdateSerializer(BookSerializer):
+    title = serializers.CharField(read_only=True)
+    author = serializers.CharField(read_only=True)
+    cover = serializers.ChoiceField(
+        choices=Book.COVER_CHOICES, read_only=True
+    )

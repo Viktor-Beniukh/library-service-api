@@ -3,7 +3,7 @@ from rest_framework.pagination import PageNumberPagination
 
 from book.models import Book
 from book.permissions import IsAdminOrIfAllowAnyReadOnly
-from book.serializers import BookSerializer
+from book.serializers import BookSerializer, BookUpdateSerializer
 
 
 class LibraryPagination(PageNumberPagination):
@@ -16,3 +16,9 @@ class BookViewSet(viewsets.ModelViewSet):
     serializer_class = BookSerializer
     pagination_class = LibraryPagination
     permission_classes = (IsAdminOrIfAllowAnyReadOnly,)
+
+    def get_serializer_class(self):
+        if self.action == "update":
+            return BookUpdateSerializer
+
+        return BookSerializer
