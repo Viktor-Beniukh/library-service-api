@@ -85,6 +85,16 @@ def send_billing_notification(borrowing_id):
 
             message += f"Amount: ${borrow_amount}\n\n"
 
+        if days_borrowed > 0 and (
+            borrowing.actual_return_date < borrowing.expected_return_date
+        ):
+            days_actual = (
+                    borrowing.actual_return_date - borrowing.borrow_date
+            ).days
+            borrow_amount = days_actual * book.daily_fee
+
+            message += f"Amount: ${borrow_amount}\n\n"
+
     bot.send_message(chat_id=settings.TELEGRAM_CHAT_ID, text=message)
 
 

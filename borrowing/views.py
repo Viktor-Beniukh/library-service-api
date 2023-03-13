@@ -147,7 +147,7 @@ def create_checkout_session(request, payment_id):
         ],
         mode="payment",
         success_url=BASE_URL + "/success?session_id={CHECKOUT_SESSION_ID}",
-        cancel_url=BASE_URL + "/cancelled/"
+        cancel_url=BASE_URL + "/cancelled?session_id={CHECKOUT_SESSION_ID}"
     )
 
     payment.session_id = session.id
@@ -169,4 +169,19 @@ def payment_success(request):
 
     return JsonResponse(
         {"message": "Payment successful!"}
+    )
+
+
+def payment_cancel(request):
+    session_id = request.GET.get("session_id")
+    payment = Payment.objects.get(session_id=session_id)
+    payment.status_payment = Payment.CANCELLED
+    payment.save()
+
+    return JsonResponse(
+        {
+            "message": "Payment cancelled. "
+                       "The payment can be paid a bit later "
+                       "(but the session is available for only 24h)"
+        }
     )

@@ -6,6 +6,7 @@ from borrowing.views import (
     PaymentViewSet,
     create_checkout_session,
     payment_success,
+    payment_cancel,
 )
 
 router = routers.DefaultRouter()
@@ -21,6 +22,7 @@ urlpatterns = [
         name="create-session"
     ),
     path("success/", payment_success, name="success"),
+    path("cancelled/", payment_cancel, name="cancelled"),
 ]
 
 

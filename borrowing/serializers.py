@@ -112,6 +112,8 @@ class PaymentSerializer(serializers.ModelSerializer):
     borrower_full_name = serializers.CharField(
         source="borrowing.borrower.full_name", read_only=True
     )
+    session_url = serializers.URLField(read_only=True)
+    session_id = serializers.CharField(read_only=True)
 
     class Meta:
         model = Payment
@@ -143,12 +145,24 @@ class PaymentSerializer(serializers.ModelSerializer):
             money_to_pay = days_borrowed * book.daily_fee + (
                 overdue_days * book.daily_fee * settings.FINE_MULTIPLIER
             )
+
             validated_data["money_to_pay"] = money_to_pay
 
         if days_borrowed > 0 and (
             borrowing.actual_return_date == borrowing.expected_return_date
         ):
             money_to_pay = days_borrowed * book.daily_fee
+
+            validated_data["money_to_pay"] = money_to_pay
+
+        if days_borrowed > 0 and (
+            borrowing.actual_return_date < borrowing.expected_return_date
+        ):
+            days_actual = (
+                borrowing.actual_return_date - borrowing.borrow_date
+            ).days
+            money_to_pay = days_actual * book.daily_fee
+
             validated_data["money_to_pay"] = money_to_pay
 
         return super(PaymentSerializer, self).create(validated_data)

@@ -7,7 +7,7 @@ from book.models import Book
 
 
 def default_return_expecting_date():
-    return date.today() + timedelta(days=1)
+    return date.today() + timedelta(days=3)
 
 
 class Borrowing(models.Model):
@@ -37,11 +37,13 @@ class Borrowing(models.Model):
 class Payment(models.Model):
     PENDING = "PENDING"
     PAID = "PAID"
+    CANCELLED = "CANCELLED"
     PAYMENT = "PAYMENT"
     FINE = "FINE"
     STATUS_CHOICES = [
         (PENDING, "Pending"),
-        (PAID, "Paid")
+        (PAID, "Paid"),
+        (CANCELLED, "Cancelled")
     ]
     TYPE_CHOICES = [
         (PAYMENT, "Payment"),
@@ -52,13 +54,13 @@ class Payment(models.Model):
         Borrowing, on_delete=models.CASCADE, related_name="payments"
     )
     status_payment = models.CharField(
-        max_length=7, choices=STATUS_CHOICES, default=PENDING
+        max_length=10, choices=STATUS_CHOICES, default=PENDING
     )
     type_payment = models.CharField(
         max_length=7, choices=TYPE_CHOICES, default=PAYMENT
     )
-    session_url = models.URLField()
-    session_id = models.CharField(max_length=100)
+    session_url = models.URLField(blank=True)
+    session_id = models.CharField(max_length=100, blank=True)
     money_to_pay = models.DecimalField(
         max_digits=10, decimal_places=2, default=0
     )
