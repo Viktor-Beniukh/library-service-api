@@ -58,7 +58,7 @@ def send_billing_notification(borrowing_id):
     borrowing = Borrowing.objects.get(id=borrowing_id)
     book = borrowing.book
     days_borrowed = (
-            borrowing.expected_return_date - borrowing.borrow_date
+        borrowing.expected_return_date - borrowing.borrow_date
     ).days
 
     message = f"Borrower Name: {borrowing.borrower.first_name} " \
@@ -89,7 +89,7 @@ def send_billing_notification(borrowing_id):
             borrowing.actual_return_date < borrowing.expected_return_date
         ):
             days_actual = (
-                    borrowing.actual_return_date - borrowing.borrow_date
+                borrowing.actual_return_date - borrowing.borrow_date
             ).days
             borrow_amount = days_actual * book.daily_fee
 

@@ -91,7 +91,9 @@ class BorrowingViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(data=request.data)
             if serializer.is_valid(raise_exception=True):
                 if borrowing.actual_return_date is not None:
-                    raise ValidationError("This book has already been returned")
+                    raise ValidationError(
+                        "This book has already been returned"
+                    )
 
                 borrowing.actual_return_date = timezone.now()
                 borrowing.save()
@@ -161,7 +163,10 @@ def payment_success(request):
     session_id = request.GET.get("session_id")
     payment = Payment.objects.get(session_id=session_id)
     payment.status_payment = Payment.PAID
-    if payment.borrowing.actual_return_date > payment.borrowing.expected_return_date:
+    if (
+            payment.borrowing.actual_return_date
+            > payment.borrowing.expected_return_date
+    ):
         payment.type_payment = Payment.FINE
     payment.save()
 
