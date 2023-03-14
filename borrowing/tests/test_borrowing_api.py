@@ -134,3 +134,20 @@ class AdminBorrowingApiTests(TestCase):
         response = self.client.post(BORROWING_URL, payload)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_filter_borrowing_by_user_and_is_active(self):
+        borrowing = sample_borrowing()
+        pagination = LibraryPagination
+
+        response = self.client.get(
+            BORROWING_URL,
+            {
+                "user_id": borrowing.borrower.id, "is_active": True
+            }
+        )
+
+        serializer = BorrowingListSerializer(pagination, borrowing)
+
+        if serializer.is_valid():
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.data, serializer.data)

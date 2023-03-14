@@ -4,6 +4,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -107,6 +108,21 @@ class BorrowingViewSet(viewsets.ModelViewSet):
                     {"status": "Your book was successfully returned"},
                     status=status.HTTP_200_OK
                 )
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="user_id&is_active",
+                type={"type": "list", "items": [
+                    {"type": "number"}, {"type": "bool"}
+                ]},
+                description="Filter by users id and is_active "
+                            "(ex. ?user_id=1&is_active=True)"
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class PaymentViewSet(viewsets.ModelViewSet):

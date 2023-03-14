@@ -108,3 +108,16 @@ class AdminBookApiTests(TestCase):
 
         for key in payload:
             self.assertEqual(payload[key], getattr(book, key))
+
+    def test_filter_book_by_title(self):
+        sample_book(title="Book")
+        sample_book(title="Sample")
+        pagination = LibraryPagination
+
+        response = self.client.get(BOOK_URL, {"title": "Book"})
+
+        books = Book.objects.filter(title__icontains="book")
+        serializer = BookSerializer(pagination, books, many=True)
+
+        if serializer.is_valid():
+            self.assertEqual(response.data, serializer.data)
