@@ -179,11 +179,13 @@ def payment_success(request):
     session_id = request.GET.get("session_id")
     payment = Payment.objects.get(session_id=session_id)
     payment.status_payment = Payment.PAID
+
     if (
         payment.borrowing.actual_return_date
         > payment.borrowing.expected_return_date
     ):
         payment.type_payment = Payment.FINE
+
     payment.save()
 
     send_successful_payment_notification(payment_id=payment.id)
