@@ -35,7 +35,7 @@ BASE_URL = "http://127.0.0.1:8000"
 
 class BorrowingViewSet(viewsets.ModelViewSet):
     queryset = Borrowing.objects.select_related("book", "borrower")
-    serializer_class = BorrowingListSerializer
+    serializer_class = BorrowingSerializer
     pagination_class = LibraryPagination
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
     payment_serializer_class = PaymentSerializer
@@ -164,8 +164,8 @@ def payment_success(request):
     payment = Payment.objects.get(session_id=session_id)
     payment.status_payment = Payment.PAID
     if (
-            payment.borrowing.actual_return_date
-            > payment.borrowing.expected_return_date
+        payment.borrowing.actual_return_date
+        > payment.borrowing.expected_return_date
     ):
         payment.type_payment = Payment.FINE
     payment.save()
