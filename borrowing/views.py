@@ -1,5 +1,7 @@
 import stripe
 
+from datetime import date
+
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import redirect
@@ -39,7 +41,6 @@ class BorrowingViewSet(viewsets.ModelViewSet):
     serializer_class = BorrowingSerializer
     pagination_class = LibraryPagination
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
-    payment_serializer_class = PaymentSerializer
 
     def get_queryset(self):
         is_status = self.request.user.is_staff
@@ -148,31 +149,41 @@ class PaymentViewSet(viewsets.ModelViewSet):
 def create_checkout_session(request, payment_id):
     payment = Payment.objects.get(pk=payment_id)
 
-    session = stripe.checkout.Session.create(
-        payment_method_types=["card"],
-        line_items=[
+    if payment.status_payment == payment.PAID:
+        return JsonResponse(
             {
-                "price_data": {
-                    "currency": "usd",
-                    "unit_amount": int(payment.money_to_pay * 100),
-                    "product_data": {
-                        "name": payment.borrowing.book.title,
-                        "description": "Borrowing book fee",
+                "message": "I'm sorry, you’ve already paid to borrow this book"
+            }
+        )
+
+    else:
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "usd",
+                        "unit_amount": int(payment.money_to_pay * 100),
+                        "product_data": {
+                            "name": payment.borrowing.book.title,
+                            "description": "Borrowing book fee",
+                        },
                     },
+                    "quantity": 1,
                 },
-                "quantity": 1,
-            },
-        ],
-        mode="payment",
-        success_url=BASE_URL + "/success?session_id={CHECKOUT_SESSION_ID}",
-        cancel_url=BASE_URL + "/cancelled?session_id={CHECKOUT_SESSION_ID}"
-    )
+            ],
+            mode="payment",
+            success_url=BASE_URL + "/success?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url=BASE_URL + (
+                "/cancelled?session_id={CHECKOUT_SESSION_ID}"
+            ),
+        )
 
-    payment.session_id = session.id
-    payment.session_url = session.url
-    payment.save()
+        payment.session_id = session.id
+        payment.session_url = session.url
+        payment.save()
 
-    return redirect(payment.session_url)
+        return redirect(payment.session_url)
 
 
 def payment_success(request):
@@ -208,3 +219,15 @@ def payment_cancel(request):
                        "(but the session is available for only 24h)"
         }
     )
+
+
+def payment_expired(request):
+    session_id = request.GET.get("session_id")
+    payment = Payment.objects.get(session_id=session_id)
+    session = stripe.checkout.Session.retrieve(session_id)
+
+    if session.expires_at < date.today():
+        payment.status_payment = Payment.EXPIRED
+        payment.save()
+
+        return JsonResponse({"message": "Payment expired."})

@@ -38,12 +38,14 @@ class Payment(models.Model):
     PENDING = "PENDING"
     PAID = "PAID"
     CANCELLED = "CANCELLED"
+    EXPIRED = "EXPIRED"
     PAYMENT = "PAYMENT"
     FINE = "FINE"
     STATUS_CHOICES = [
         (PENDING, "Pending"),
         (PAID, "Paid"),
-        (CANCELLED, "Cancelled")
+        (CANCELLED, "Cancelled"),
+        (EXPIRED, "Expired")
     ]
     TYPE_CHOICES = [
         (PAYMENT, "Payment"),

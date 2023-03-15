@@ -1,4 +1,5 @@
 from django.conf import settings
+
 from rest_framework import serializers
 
 from book.serializers import BookSerializer
@@ -20,6 +21,18 @@ class BorrowingSerializer(serializers.ModelSerializer):
             "book",
             "borrower",
         )
+
+    def validate(self, attrs):
+        data = super(BorrowingSerializer, self).validate(attrs=attrs)
+        if attrs["actual_return_date"] is None:
+            raise serializers.ValidationError(
+                {
+                    "message": "I'm sorry, you can't take the book "
+                               "until you return the previous the book"
+                }
+            )
+
+        return data
 
 
 class BorrowingListSerializer(BorrowingSerializer):
@@ -54,15 +67,19 @@ class BorrowingDetailSerializer(BorrowingSerializer):
 
 
 class BorrowingCreateSerializer(BorrowingSerializer):
-    actual_return_date = serializers.DateField(read_only=True)
+
+    def validate_inventory(self, attrs):
+        data = super(BorrowingCreateSerializer, self).validate(attrs=attrs)
+
+        if attrs["book"].inventory == 0:
+            raise serializers.ValidationError(
+                {"message": "I’m sorry, but there are no more books"}
+            )
+
+        return data
 
     def create(self, validated_data):
         borrowing = Borrowing.objects.create(**validated_data)
-
-        if borrowing.book.inventory == 0:
-            raise serializers.ValidationError(
-                "I’m sorry, but there are no more books"
-            )
 
         if borrowing.borrow_date:
             borrowing.book.inventory -= 1
