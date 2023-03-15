@@ -15,10 +15,8 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
 from book.permissions import IsAdminOrIfAuthenticatedReadOnly
-from book.notifications import (
-    send_billing_notification,
-    send_successful_payment_notification
-)
+from book.notifications import send_successful_payment_notification
+
 from book.views import LibraryPagination
 from borrowing.models import Borrowing, Payment
 from borrowing.serializers import (
@@ -102,8 +100,6 @@ class BorrowingViewSet(viewsets.ModelViewSet):
                 book = borrowing.book
                 book.inventory += 1
                 book.save()
-
-                send_billing_notification(borrowing_id=borrowing.id)
 
                 return Response(
                     {"status": "Your book was successfully returned"},
