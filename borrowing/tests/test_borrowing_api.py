@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -115,7 +115,29 @@ class AdminBorrowingApiTests(TestCase):
         )
         self.client.force_authenticate(self.user)
 
-    def test_create_borrowing(self):
+    def test_allow_create_borrowing_after_return_book(self):
+        book = Book.objects.create(
+            title="test", inventory=10, daily_fee=5.00
+        )
+        borrower = get_user_model().objects.create_user(
+            email="test@test.com", password="test12345"
+        )
+
+        borrow_date = date.today()
+        actual_return_date = date.today() + timedelta(days=5)
+
+        payload = {
+            "borrow_date": borrow_date,
+            "actual_return_date": actual_return_date,
+            "book": book.id,
+            "borrower": borrower.id,
+        }
+
+        response = self.client.post(BORROWING_URL, payload)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_not_create_borrowing_if_not_return_book(self):
         book = Book.objects.create(
             title="test", inventory=10, daily_fee=5.00
         )
@@ -127,13 +149,14 @@ class AdminBorrowingApiTests(TestCase):
 
         payload = {
             "borrow_date": borrow_date,
+            "actual_return_date": "",
             "book": book.id,
             "borrower": borrower.id,
         }
 
         response = self.client.post(BORROWING_URL, payload)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_filter_borrowing_by_user_and_is_active(self):
         borrowing = sample_borrowing()
