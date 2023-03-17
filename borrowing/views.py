@@ -1,6 +1,8 @@
+
+
 import stripe
 
-from datetime import date
+from datetime import date, datetime
 
 from django.conf import settings
 from django.http import JsonResponse
@@ -14,7 +16,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
-from book.permissions import IsAdminOrIfAuthenticatedReadOnly
+# from book.permissions import IsAdminOrIfAuthenticatedReadOnly
 from book.notifications import send_successful_payment_notification
 
 from book.views import LibraryPagination
@@ -38,10 +40,10 @@ class BorrowingViewSet(viewsets.ModelViewSet):
     queryset = Borrowing.objects.select_related("book", "borrower")
     serializer_class = BorrowingSerializer
     pagination_class = LibraryPagination
-    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
+    # permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_queryset(self):
-        is_status = self.request.user.is_staff
+        # is_status = self.request.user.is_staff
         user_id_str = self.request.query_params.get("user_id")
         is_active = self.request.query_params.get("is_active")
 
@@ -53,8 +55,8 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         if is_active:
             queryset = queryset.filter(actual_return_date__isnull=True)
 
-        if is_status is False:
-            queryset = queryset.filter(borrower=self.request.user)
+        # if is_status is False:
+        #     queryset = queryset.filter(borrower=self.request.user)
 
         return queryset
 
@@ -126,14 +128,14 @@ class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.select_related("borrowing")
     serializer_class = PaymentSerializer
     pagination_class = LibraryPagination
-    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
-
-    def get_queryset(self):
-        if self.request.user.is_staff:
-            return Payment.objects.select_related("borrowing")
-        return Payment.objects.filter(
-            borrowing__borrower=self.request.user
-        )
+    # permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
+    #
+    # def get_queryset(self):
+    #     if self.request.user.is_staff:
+    #         return Payment.objects.select_related("borrowing")
+    #     return Payment.objects.filter(
+    #         borrowing__borrower=self.request.user
+    #     )
 
     def get_serializer_class(self):
         if self.action == "update":
@@ -219,10 +221,10 @@ def payment_cancel(request):
 
 def payment_expired(request):
     session_id = request.GET.get("session_id")
-    payment = Payment.objects.get(session_id=session_id)
+    payment = get_object_or_404(Payment, session_id=session_id)
     session = stripe.checkout.Session.retrieve(session_id)
 
-    if session.expires_at < date.today():
+    if session.expires_at < datetime.now(timezone.utc):
         payment.status_payment = Payment.EXPIRED
         payment.save()
 
