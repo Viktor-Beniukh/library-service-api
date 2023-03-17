@@ -88,3 +88,19 @@ Docker should be installed
 
 ### Checking the endpoints functionality
 - You can see detailed APIs at swagger page: via /api/doc/swagger/
+
+
+## Check project functionality
+
+Superuser credentials for test the functionality of this project:
+- email address: `migrated@admin.com`;
+- password: `adminpassword`.
+
+
+## Create token pair for user
+
+Token page: via /api/user/token/
+
+Enter:
+- email address: `migrated@admin.com`;
+- password: `adminpassword`.
