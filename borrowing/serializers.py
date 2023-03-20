@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.conf import settings
 
 from rest_framework import serializers
@@ -21,18 +23,6 @@ class BorrowingSerializer(serializers.ModelSerializer):
             "book",
             "borrower",
         )
-
-    def validate(self, attrs):
-        data = super(BorrowingSerializer, self).validate(attrs=attrs)
-        if attrs["actual_return_date"] is None:
-            raise serializers.ValidationError(
-                {
-                    "message": "I'm sorry, you can't take the book "
-                               "until you return the previous the book"
-                }
-            )
-
-        return data
 
 
 class BorrowingListSerializer(BorrowingSerializer):
@@ -67,8 +57,9 @@ class BorrowingDetailSerializer(BorrowingSerializer):
 
 
 class BorrowingCreateSerializer(BorrowingSerializer):
+    actual_return_date = serializers.DateField(read_only=True)
 
-    def validate_inventory(self, attrs):
+    def validate(self, attrs) -> Any:
         data = super(BorrowingCreateSerializer, self).validate(attrs=attrs)
 
         if attrs["book"].inventory == 0:
@@ -78,7 +69,7 @@ class BorrowingCreateSerializer(BorrowingSerializer):
 
         return data
 
-    def create(self, validated_data):
+    def create(self, validated_data) -> Borrowing:
         borrowing = Borrowing.objects.create(**validated_data)
 
         if borrowing.borrow_date:
@@ -91,19 +82,15 @@ class BorrowingCreateSerializer(BorrowingSerializer):
             return borrowing
 
 
-class BorrowingUpdateSerializer(BorrowingDetailSerializer):
-    borrow_date = serializers.DateField(read_only=True)
-
-
 class BorrowingReturnBookSerializer(serializers.ModelSerializer):
     book_title = serializers.CharField(
         source="book.title", read_only=True
     )
+    book_inventory = serializers.IntegerField(
+        source="book.inventory", read_only=True
+    )
     borrower_full_name = serializers.CharField(
         source="borrower.full_name", read_only=True
-    )
-    actual_return_date = serializers.DateField(
-        write_only=True, required=False
     )
 
     class Meta:
@@ -111,6 +98,7 @@ class BorrowingReturnBookSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "book_title",
+            "book_inventory",
             "borrower_full_name",
             "actual_return_date"
         )
@@ -146,39 +134,24 @@ class PaymentSerializer(serializers.ModelSerializer):
             "money_to_pay",
         )
 
-    def create(self, validated_data):
+    def create(self, validated_data) -> Any:
         borrowing = validated_data["borrowing"]
         book = borrowing.book
         days_borrowed = (
             borrowing.expected_return_date - borrowing.borrow_date
         ).days
+        days_actual = (
+            borrowing.actual_return_date - borrowing.borrow_date
+        ).days
+        overdue_days = days_actual - days_borrowed
 
-        if days_borrowed > 0 and (
-            borrowing.actual_return_date > borrowing.expected_return_date
-        ):
-            overdue_days = (
-                borrowing.actual_return_date - borrowing.expected_return_date
-            ).days
-            money_to_pay = days_borrowed * book.daily_fee + (
-                overdue_days * book.daily_fee * settings.FINE_MULTIPLIER
-            )
-
-            validated_data["money_to_pay"] = money_to_pay
-
-        if days_borrowed > 0 and (
-            borrowing.actual_return_date == borrowing.expected_return_date
-        ):
-            money_to_pay = days_borrowed * book.daily_fee
-
-            validated_data["money_to_pay"] = money_to_pay
-
-        if days_borrowed > 0 and (
-            borrowing.actual_return_date < borrowing.expected_return_date
-        ):
-            days_actual = (
-                borrowing.actual_return_date - borrowing.borrow_date
-            ).days
-            money_to_pay = days_actual * book.daily_fee
+        if days_borrowed:
+            if borrowing.actual_return_date > borrowing.expected_return_date:
+                money_to_pay = days_borrowed * book.daily_fee + (
+                    overdue_days * book.daily_fee * settings.FINE_MULTIPLIER
+                )
+            else:
+                money_to_pay = days_actual * book.daily_fee
 
             validated_data["money_to_pay"] = money_to_pay
 

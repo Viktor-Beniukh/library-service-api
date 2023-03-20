@@ -30,7 +30,7 @@ class Borrowing(models.Model):
     class Meta:
         ordering = ("borrow_date",)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.id}: ('{self.book.title}')"
 
 
@@ -67,5 +67,5 @@ class Payment(models.Model):
         max_digits=10, decimal_places=2, default=0
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Payment {self.id} ({self.borrowing.book.title})"

@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -13,7 +15,7 @@ from book.views import LibraryPagination
 BOOK_URL = reverse("book:book-list")
 
 
-def sample_book(**params):
+def sample_book(**params: Any) -> Book:
     defaults = {
         "title": "Test",
         "inventory": 10,
@@ -24,7 +26,7 @@ def sample_book(**params):
     return Book.objects.create(**defaults)
 
 
-def detail_url(book_id):
+def detail_url(book_id: int) -> Any:
     return reverse("book:book-detail", args=[book_id])
 
 
@@ -32,7 +34,7 @@ class UnauthenticatedBookApi(TestCase):
     def setUp(self) -> None:
         self.client = APIClient()
 
-    def test_list_book(self):
+    def test_list_book(self) -> None:
         sample_book()
         sample_book()
         pagination = LibraryPagination
@@ -46,7 +48,7 @@ class UnauthenticatedBookApi(TestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(response.data, serializer.data)
 
-    def test_retrieve_book_detail(self):
+    def test_retrieve_book_detail(self) -> None:
         book = sample_book()
         url = detail_url(book.id)
         pagination = LibraryPagination
@@ -69,7 +71,7 @@ class AuthenticatedBookApiTests(TestCase):
         )
         self.client.force_authenticate(self.user)
 
-    def test_create_book_forbidden(self):
+    def test_create_book_forbidden(self) -> None:
 
         payload = {
             "title": "Test",
@@ -92,7 +94,7 @@ class AdminBookApiTests(TestCase):
         )
         self.client.force_authenticate(self.user)
 
-    def test_create_book(self):
+    def test_create_book(self) -> None:
 
         payload = {
             "title": "Test",
@@ -109,7 +111,7 @@ class AdminBookApiTests(TestCase):
         for key in payload:
             self.assertEqual(payload[key], getattr(book, key))
 
-    def test_filter_book_by_title(self):
+    def test_filter_book_by_title(self) -> None:
         sample_book(title="Book")
         sample_book(title="Sample")
         pagination = LibraryPagination

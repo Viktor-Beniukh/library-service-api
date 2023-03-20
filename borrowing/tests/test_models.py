@@ -7,7 +7,7 @@ from borrowing.models import Borrowing, Payment
 
 class ModelsTests(TestCase):
 
-    def test_borrowing_str(self):
+    def test_borrowing_str(self) -> None:
         book = Book.objects.create(
             title="test",
             inventory=10,
@@ -27,7 +27,7 @@ class ModelsTests(TestCase):
             str(borrowing), f"{borrowing.id}: ('{book.title}')"
         )
 
-    def test_payment_str(self):
+    def test_payment_str(self) -> None:
         book = Book.objects.create(
             title="test",
             inventory=10,

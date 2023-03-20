@@ -1,3 +1,5 @@
+from typing import Any
+
 import stripe
 
 from datetime import datetime
@@ -24,7 +26,6 @@ from borrowing.serializers import (
     BorrowingListSerializer,
     BorrowingDetailSerializer,
     BorrowingCreateSerializer,
-    BorrowingUpdateSerializer,
     BorrowingReturnBookSerializer,
     PaymentSerializer,
     PaymentUpdateSerializer,
@@ -40,7 +41,7 @@ class BorrowingViewSet(viewsets.ModelViewSet):
     pagination_class = LibraryPagination
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
-    def get_queryset(self):
+    def get_queryset(self) -> queryset:
         is_status = self.request.user.is_staff
         user_id_str = self.request.query_params.get("user_id")
         is_active = self.request.query_params.get("is_active")
@@ -69,26 +70,17 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         if self.action == "create":
             return BorrowingCreateSerializer
 
-        if self.action == "update":
-            return BorrowingUpdateSerializer
-
         if self.action == "return_book":
             return BorrowingReturnBookSerializer
 
         return BorrowingSerializer
 
-    @action(methods=["GET", "POST"], detail=True, url_path="return")
-    def return_book(self, request, pk=None):
+    @action(methods=["POST"], detail=True, url_path="return")
+    def return_book(self, request, pk: int = None) -> Any:
         borrowing = get_object_or_404(Borrowing, pk=pk)
 
-        if request.method == "GET":
+        if request.method == "POST":
             serializer = self.get_serializer(borrowing, data=request.data)
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-
-        elif request.method == "POST":
-            serializer = self.get_serializer(data=request.data)
             if serializer.is_valid(raise_exception=True):
                 if borrowing.actual_return_date is not None:
                     raise ValidationError(
@@ -96,10 +88,9 @@ class BorrowingViewSet(viewsets.ModelViewSet):
                     )
 
                 borrowing.actual_return_date = timezone.now()
+                borrowing.book.inventory += 1
+                borrowing.book.save()
                 borrowing.save()
-                book = borrowing.book
-                book.inventory += 1
-                book.save()
 
                 return Response(
                     {"status": "Your book was successfully returned"},
@@ -118,7 +109,7 @@ class BorrowingViewSet(viewsets.ModelViewSet):
             )
         ]
     )
-    def list(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs) -> Any:
         return super().list(request, *args, **kwargs)
 
 
@@ -128,7 +119,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
     pagination_class = LibraryPagination
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
-    def get_queryset(self):
+    def get_queryset(self) -> Payment:
         if self.request.user.is_staff:
             return Payment.objects.select_related("borrowing")
         return Payment.objects.filter(
@@ -142,7 +133,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
         return PaymentSerializer
 
 
-def create_checkout_session(request, payment_id):
+def create_checkout_session(request, payment_id: int) -> JsonResponse:
     payment = Payment.objects.get(pk=payment_id)
 
     if payment.status_payment == payment.PAID:
@@ -182,7 +173,7 @@ def create_checkout_session(request, payment_id):
         return redirect(payment.session_url)
 
 
-def payment_success(request):
+def payment_success(request) -> JsonResponse:
     session_id = request.GET.get("session_id")
     payment = Payment.objects.get(session_id=session_id)
     payment.status_payment = Payment.PAID
@@ -202,7 +193,7 @@ def payment_success(request):
     )
 
 
-def payment_cancel(request):
+def payment_cancel(request) -> JsonResponse:
     session_id = request.GET.get("session_id")
     payment = Payment.objects.get(session_id=session_id)
     payment.status_payment = Payment.CANCELLED
@@ -217,7 +208,7 @@ def payment_cancel(request):
     )
 
 
-def payment_expired(request):
+def payment_expired(request) -> JsonResponse:
     session_id = request.GET.get("session_id")
     payment = get_object_or_404(Payment, session_id=session_id)
     session = stripe.checkout.Session.retrieve(session_id)

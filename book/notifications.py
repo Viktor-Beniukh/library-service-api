@@ -1,19 +1,20 @@
 import telebot
+
 from django.conf import settings
 from django.utils import timezone
 
 from borrowing.models import Borrowing, Payment
 
+
 bot = telebot.TeleBot(settings.TELEGRAM_BOT_TOKEN)
 
 
-def send_new_borrowing_notification(borrowing_id):
+def send_new_borrowing_notification(borrowing_id: int) -> None:
     borrowing = Borrowing.objects.get(id=borrowing_id)
-    book = borrowing.book
     days_borrowed = (
         borrowing.expected_return_date - borrowing.borrow_date
     ).days
-    borrowing_amount = book.daily_fee * days_borrowed
+    borrowing_amount = borrowing.book.daily_fee * days_borrowed
 
     message = f"A new borrowing has been created!\n\n" \
               f"Borrower Name: " \
@@ -24,7 +25,7 @@ def send_new_borrowing_notification(borrowing_id):
     bot.send_message(chat_id=settings.TELEGRAM_CHAT_ID, text=message)
 
 
-def send_overdue_borrowings_notification():
+def send_overdue_borrowings_notification() -> None:
     overdue_borrowings = Borrowing.objects.filter(
         expected_return_date__lt=timezone.now(),
         actual_return_date__isnull=True
@@ -34,11 +35,10 @@ def send_overdue_borrowings_notification():
     for borrowing in overdue_borrowings:
 
         if borrowing:
-            book = borrowing.book
             days_borrowed = (
                 borrowing.expected_return_date - borrowing.borrow_date
             ).days
-            borrowing_amount = book.daily_fee * days_borrowed
+            borrowing_amount = borrowing.book.daily_fee * days_borrowed
 
             message += f"Borrower Name: {borrowing.borrower.first_name} " \
                        f"{borrowing.borrower.last_name}\n" \
@@ -53,7 +53,7 @@ def send_overdue_borrowings_notification():
     bot.send_message(chat_id=settings.TELEGRAM_CHAT_ID, text=message)
 
 
-def send_successful_payment_notification(payment_id):
+def send_successful_payment_notification(payment_id: int) -> None:
     payment = Payment.objects.get(id=payment_id)
 
     message = f"Payment successful!\n\n" \

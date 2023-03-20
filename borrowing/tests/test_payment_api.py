@@ -14,7 +14,7 @@ from borrowing.serializers import PaymentSerializer
 PAYMENT_URL = reverse("borrowing:payment-list")
 
 
-def sample_payment(**params):
+def sample_payment(**params: dict) -> Payment:
     book = Book.objects.create(
         title="test", inventory=10, daily_fee=5.00,
     )
@@ -37,7 +37,7 @@ def sample_payment(**params):
     return Payment.objects.create(**defaults)
 
 
-def detail_url(payment_id):
+def detail_url(payment_id: int):
     return reverse("borrowing:payment-detail", args=[payment_id])
 
 
@@ -45,7 +45,7 @@ class UnauthenticatedPaymentApi(TestCase):
     def setUp(self) -> None:
         self.client = APIClient()
 
-    def test_auth_required(self):
+    def test_auth_required(self) -> None:
         response = self.client.get(PAYMENT_URL)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -58,7 +58,7 @@ class AuthenticatedPaymentApiTests(TestCase):
         )
         self.client.force_authenticate(self.user)
 
-    def test_list_payments(self):
+    def test_list_payments(self) -> None:
         sample_payment()
 
         response = self.client.get(PAYMENT_URL)
@@ -72,7 +72,7 @@ class AuthenticatedPaymentApiTests(TestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(response.data, serializer.data)
 
-    def test_retrieve_payments_detail(self):
+    def test_retrieve_payments_detail(self) -> None:
         payment = sample_payment()
         url = detail_url(payment.id)
         pagination = LibraryPagination
@@ -85,7 +85,7 @@ class AuthenticatedPaymentApiTests(TestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(response.data, serializer.data)
 
-    def test_create_payment_forbidden(self):
+    def test_create_payment_forbidden(self) -> None:
         borrowing = sample_payment()
 
         payload = {
@@ -107,7 +107,7 @@ class AdminPaymentApiTests(TestCase):
         )
         self.client.force_authenticate(self.user)
 
-    def test_create_payment(self):
+    def test_create_payment(self) -> None:
         borrowing = sample_payment()
 
         payload = {

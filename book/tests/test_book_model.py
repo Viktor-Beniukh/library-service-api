@@ -5,7 +5,7 @@ from book.models import Book
 
 class ModelsTests(TestCase):
 
-    def test_book_str(self):
+    def test_book_str(self) -> None:
         book = Book.objects.create(
             title="test",
             inventory=10,

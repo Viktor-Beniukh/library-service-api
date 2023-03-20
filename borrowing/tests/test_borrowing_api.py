@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from typing import Any
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -19,7 +20,7 @@ from borrowing.serializers import (
 BORROWING_URL = reverse("borrowing:borrowing-list")
 
 
-def sample_borrowing(**params):
+def sample_borrowing(**params: dict) -> Borrowing:
     book = Book.objects.create(
         title="test",
         inventory=10,
@@ -41,7 +42,7 @@ def sample_borrowing(**params):
     return Borrowing.objects.create(**defaults)
 
 
-def detail_url(borrowing_id):
+def detail_url(borrowing_id: int) -> Any:
     return reverse("borrowing:borrowing-detail", args=[borrowing_id])
 
 
@@ -49,7 +50,7 @@ class UnauthenticatedBorrowingApi(TestCase):
     def setUp(self) -> None:
         self.client = APIClient()
 
-    def test_auth_required(self):
+    def test_auth_required(self) -> None:
         response = self.client.get(BORROWING_URL)
         self.assertEqual(
             response.status_code,
@@ -66,7 +67,7 @@ class AuthenticatedBorrowingApiTests(TestCase):
         )
         self.client.force_authenticate(self.user)
 
-    def test_list_borrowings(self):
+    def test_list_borrowings(self) -> None:
         sample_borrowing()
 
         response = self.client.get(BORROWING_URL)
@@ -80,7 +81,7 @@ class AuthenticatedBorrowingApiTests(TestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(response.data, serializer.data)
 
-    def test_retrieve_borrowings_detail(self):
+    def test_retrieve_borrowings_detail(self) -> None:
         borrowing = sample_borrowing()
         url = detail_url(borrowing.id)
         pagination = LibraryPagination
@@ -93,7 +94,7 @@ class AuthenticatedBorrowingApiTests(TestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(response.data, serializer.data)
 
-    def test_create_borrowing_forbidden(self):
+    def test_create_borrowing_forbidden(self) -> None:
 
         payload = {
             "borrow_date": "2023-01-01",
@@ -115,7 +116,7 @@ class AdminBorrowingApiTests(TestCase):
         )
         self.client.force_authenticate(self.user)
 
-    def test_allow_create_borrowing_after_return_book(self):
+    def test_allow_create_borrowing_after_return_book(self) -> None:
         book = Book.objects.create(
             title="test", inventory=10, daily_fee=5.00
         )
@@ -137,28 +138,7 @@ class AdminBorrowingApiTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_not_create_borrowing_if_not_return_book(self):
-        book = Book.objects.create(
-            title="test", inventory=10, daily_fee=5.00
-        )
-        borrower = get_user_model().objects.create_user(
-            email="test@test.com", password="test12345"
-        )
-
-        borrow_date = date.today()
-
-        payload = {
-            "borrow_date": borrow_date,
-            "actual_return_date": "",
-            "book": book.id,
-            "borrower": borrower.id,
-        }
-
-        response = self.client.post(BORROWING_URL, payload)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_filter_borrowing_by_user_and_is_active(self):
+    def test_filter_borrowing_by_user_and_is_active(self) -> None:
         borrowing = sample_borrowing()
         pagination = LibraryPagination
 

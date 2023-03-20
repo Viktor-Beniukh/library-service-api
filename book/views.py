@@ -1,3 +1,5 @@
+from typing import Any
+
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
@@ -18,7 +20,7 @@ class BookViewSet(viewsets.ModelViewSet):
     pagination_class = LibraryPagination
     permission_classes = (IsAdminOrIfAllowAnyReadOnly,)
 
-    def get_queryset(self):
+    def get_queryset(self) -> queryset:
         title = self.request.query_params.get("title")
 
         queryset = self.queryset
@@ -43,5 +45,5 @@ class BookViewSet(viewsets.ModelViewSet):
             ),
         ]
     )
-    def list(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs) -> Any:
         return super().list(request, *args, **kwargs)
