@@ -1,10 +1,8 @@
 import telebot
-
 from django.conf import settings
 from django.utils import timezone
 
 from borrowing.models import Borrowing, Payment
-
 
 bot = telebot.TeleBot(settings.TELEGRAM_BOT_TOKEN)
 

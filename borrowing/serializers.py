@@ -1,14 +1,12 @@
 from typing import Any
 
 from django.conf import settings
-
 from rest_framework import serializers
 
+from book.notifications import send_new_borrowing_notification
 from book.serializers import BookSerializer
 from borrowing.models import Borrowing, Payment
 from user.serializers import UserSerializer
-
-from book.notifications import send_new_borrowing_notification
 
 
 class BorrowingSerializer(serializers.ModelSerializer):

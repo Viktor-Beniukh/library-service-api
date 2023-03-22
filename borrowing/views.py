@@ -1,24 +1,20 @@
+from datetime import datetime
 from typing import Any
 
 import stripe
-
-from datetime import datetime
-
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, OpenApiParameter
-
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
-from book.permissions import IsAdminOrIfAuthenticatedReadOnly
 from book.notifications import send_successful_payment_notification
-
+from book.permissions import IsAdminOrIfAuthenticatedReadOnly
 from book.views import LibraryPagination
 from borrowing.models import Borrowing, Payment
 from borrowing.serializers import (
