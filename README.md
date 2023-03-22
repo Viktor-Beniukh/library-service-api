@@ -31,6 +31,19 @@ You need to create `.env` file and add there the variables with your according v
 - `STRIPE_PUBLIC_KEY` & `STRIPE_SECRET_KEY`: your keys received after registration on the Stripe website.
 
 
+### How to get a Telegram Bot Token and a Telegram Chat ID
+
+1. Create a Telegram Bot and get a Telegram Bot Token:
+    - enter to an address line: `https://t.me/BotFather` or in the Telegram app in the search box enter: `BotFather`;
+    - select the option: `/newbot`;
+    - follow the BotFather instructions;
+    - if the bot is successfully registered, you receive a **token**;
+2. Get Telegram Chat ID:
+    - enter into the created Telegram bot and send any message(for example `Hello`);
+    - enter to an address line: `https://api.telegram.org/bot<your-telegram_bot_token>/getUpdates`;
+    - get response in json format, find the keys "chat": {"id": **<your-telegram_chat_id>**, ...}
+
+
 ## Run with docker
 
 Docker should be installed
@@ -99,8 +112,10 @@ Superuser credentials for test the functionality of this project:
 
 ## Create token pair for user
 
-Token page: via /api/user/token/
+Token page: `http://127.0.0.1:8000/api/user/token/`
 
 Enter:
 - email address: `migrated@admin.com`;
 - password: `adminpassword`.
+
+And get refresh and access tokens for admin user.
