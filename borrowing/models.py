@@ -59,10 +59,10 @@ class Payment(models.Model):
         max_length=10, choices=STATUS_CHOICES, default=PENDING
     )
     type_payment = models.CharField(
-        max_length=7, choices=TYPE_CHOICES, default=PAYMENT
+        max_length=10, choices=TYPE_CHOICES, default=PAYMENT
     )
-    session_url = models.URLField(blank=True)
-    session_id = models.CharField(max_length=100, blank=True)
+    session_url = models.URLField(max_length=500, blank=True)
+    session_id = models.CharField(max_length=255, blank=True)
     money_to_pay = models.DecimalField(
         max_digits=10, decimal_places=2, default=0
     )
