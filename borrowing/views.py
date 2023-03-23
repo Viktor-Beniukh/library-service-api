@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, OpenApiParameter
+
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -16,6 +17,7 @@ from rest_framework.response import Response
 from book.notifications import send_successful_payment_notification
 from book.permissions import IsAdminOrIfAuthenticatedReadOnly
 from book.views import LibraryPagination
+
 from borrowing.models import Borrowing, Payment
 from borrowing.serializers import (
     BorrowingSerializer,
@@ -33,7 +35,14 @@ BASE_URL = "http://127.0.0.1:8000"
 
 class BorrowingViewSet(viewsets.ModelViewSet):
     queryset = Borrowing.objects.select_related("book", "borrower")
-    serializer_class = BorrowingSerializer
+    serializer_class = {
+        "list": BorrowingListSerializer,
+        "retrieve": BorrowingDetailSerializer,
+        "create": BorrowingCreateSerializer,
+        "return_book": BorrowingReturnBookSerializer,
+        "update": BorrowingSerializer,
+        "partial_update": BorrowingSerializer
+    }
     pagination_class = LibraryPagination
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
@@ -56,20 +65,7 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_serializer_class(self):
-
-        if self.action == "list":
-            return BorrowingListSerializer
-
-        if self.action == "retrieve":
-            return BorrowingDetailSerializer
-
-        if self.action == "create":
-            return BorrowingCreateSerializer
-
-        if self.action == "return_book":
-            return BorrowingReturnBookSerializer
-
-        return BorrowingSerializer
+        return self.serializer_class[self.action]
 
     @action(methods=["POST"], detail=True, url_path="return")
     def return_book(self, request, pk: int = None) -> Any:
